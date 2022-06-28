@@ -143,7 +143,6 @@ class TaskHandler:
             else:
                 logging.error(str(e))
             exit()
-        self._get_task_state()
 
     
     def enum_folder(self):
@@ -169,7 +168,7 @@ class TaskHandler:
             print_json(json.dumps(contents))
         except tsch.DCERPCSessionError as e:
             if 'ERROR_FILE_NOT_FOUND' in str(e):
-                logging.error(f'ERROR_FILE_NOT_FOUND - Invalid task path')
+                logging.error(f'ERROR_FILE_NOT_FOUND - Invalid folder path')
             else:
                 logging.error(str(e))
             exit()
@@ -231,9 +230,17 @@ class TaskHandler:
         logging.info(f'{action} task {ColorScheme.task}{self.__path}', extra=OBJ_EXTRA_FMT)
 
         # change time
-        resp = tsch.hSchRpcEnableTask(self.__dce, self.__path, enable)
-        if resp['ErrorCode'] != 0:
-            logging.critical(f'RPC call returned error code {resp["ErrorCode"]} - change may have failed')
+        try:
+            resp = tsch.hSchRpcEnableTask(self.__dce, self.__path, enable)
+            if resp['ErrorCode'] != 0:
+                logging.critical(f'RPC call returned error code {resp["ErrorCode"]} - change may have failed')
+        except tsch.DCERPCSessionError as e:
+            if 'E_ACCESSDENIED' in str(e):
+                logging.error('Error enabling task - E_ACCESSDENIED')
+                return
+            else:
+                logging.error(str(e))
+                return
 
         # check task enabled/disabled after change
         self._get_task_state()
