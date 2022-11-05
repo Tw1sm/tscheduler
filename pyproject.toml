@@ -6,10 +6,11 @@ authors = ["Tw1sm <mcreel31@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-typer = "^0.4.1"
 impacket = "^0.10.0"
 rich = "^12.4.4"
 xmltodict = "^0.13.0"
+typer = "^0.6.1"
+pefile = "2019.4.18"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
