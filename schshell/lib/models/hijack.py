@@ -2,6 +2,7 @@ from enum import Enum
 
 class Hijack(Enum):
     FODCleanupTask = 'FODCleanupTask'
+    ScanForUpdates = 'ScanForUpdates'
 
 
 class DLLHijack:
