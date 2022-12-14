@@ -11,6 +11,7 @@ from hashlib import sha256
 from rich import print_json
 from io import BufferedReader
 from os import remove
+from xml.etree import ElementTree as ET
 import xmltodict
 import pefile
 import logging
@@ -141,7 +142,7 @@ class TaskHandler:
         logging.info(f'Task XML configs dumped to ./{self.__taskconfig_file}')
 
     
-    def enum_task(self, xml=False, output=True):
+    def enum_task(self, xml=True, output=True):
         '''
         Enumerate a task's state, running instances and jump configs to JSON or XML
         '''
@@ -292,10 +293,13 @@ class TaskHandler:
         self._get_task_state()
 
 
-    def create_task(self, principal, command, args, xml=None):
+    def create_task(self, principal=None, command=None, args=None, xml=None, path=None):
         '''
         Register a new task
         '''
+        if path is None:
+            path = self.__path
+
         xml_handler = XMLHandler(xml)
         
         # using stock XML template
@@ -309,16 +313,9 @@ class TaskHandler:
             if principal == Principal.USER:
                 xml_handler.set_principal_user()
 
-        # custom XML being passed to us
-        else:
-            pass
-        
-        #print(xml_handler.get_xml_as_string())
-        #exit()
-
         # attempt to register the task
         try:
-            resp = tsch.hSchRpcRegisterTask(self.__dce, self.__path, xml_handler.get_xml_as_string(), tsch.TASK_CREATE, NULL, tsch.TASK_LOGON_NONE)
+            resp = tsch.hSchRpcRegisterTask(self.__dce, path, xml_handler.get_xml_as_string(), tsch.TASK_CREATE, NULL, tsch.TASK_LOGON_NONE)
             logging.info(f'Task created: {ColorScheme.task}{self.__path}[/]', extra=OBJ_EXTRA_FMT)
         except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             logging.error(str(e))

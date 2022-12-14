@@ -3,6 +3,8 @@ from enum import Enum
 class Hijack(Enum):
     FODCleanupTask = 'FODCleanupTask'
     ScanForUpdates = 'ScanForUpdates'
+    NGEN64 = 'NGEN64'
+    Device = 'Device'
 
 
 class DLLHijack:
