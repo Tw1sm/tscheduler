@@ -299,11 +299,10 @@ class TaskHandler:
         '''
         if path is None:
             path = self.__path
-
-        xml_handler = XMLHandler(xml)
         
         # using stock XML template
         if xml is None:
+            xml_handler = XMLHandler(None)
             if command is not None:
                 xml_handler.set_command(command)
 
@@ -312,10 +311,12 @@ class TaskHandler:
 
             if principal == Principal.USER:
                 xml_handler.set_principal_user()
+            
+            xml = xml_handler.get_xml_as_string()
 
         # attempt to register the task
         try:
-            resp = tsch.hSchRpcRegisterTask(self.__dce, path, xml_handler.get_xml_as_string(), tsch.TASK_CREATE, NULL, tsch.TASK_LOGON_NONE)
+            resp = tsch.hSchRpcRegisterTask(self.__dce, path, xml, tsch.TASK_CREATE, NULL, tsch.TASK_LOGON_NONE)
             logging.info(f'Task created: {ColorScheme.task}{self.__path}[/]', extra=OBJ_EXTRA_FMT)
         except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             logging.error(str(e))
@@ -342,7 +343,9 @@ class TaskHandler:
         '''
         self.__reference_dll = data
 
-
+    #
+    # no idea if this works anymore, associated command/module is commented out
+    #
     def hijack_task(self, hijack: DLLHijack, dll: BufferedReader):
         '''
         Upload provided DLL to target and start hijackable task
