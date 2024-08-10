@@ -1,21 +1,19 @@
 import typer
 import logging
-from schshell.lib.taskhandler import TaskHandler
-from schshell import banner
+from tscheduler.lib.taskhandler import TaskHandler
+from tscheduler import banner
 from impacket.examples.utils import parse_target
 
 
 app = typer.Typer()
-COMMAND_NAME = 'enum'
-HELP = 'Enumerate scheduled tasks and/or folders'
+COMMAND_NAME = 'start'
+HELP = 'Execute a scheduled task'
 
 @app.callback(no_args_is_help=True, invoke_without_command=True)
 def main(
     target:             str     = typer.Argument(..., help='\[\[domain/]username[:password]@]<targetName or address>'),
-    task:               str     = typer.Option(None, '-t', '--task', help='Full path of the task or folder [Example: \Microsoft\Windows\MyTask]', rich_help_panel="Task Options"),
-    folder:             bool    = typer.Option(False, '--folder', help='The specified task path is a folder and not a task', rich_help_panel="Task Options"),
-    all:                bool    = typer.Option(False, '--all', help='Enumerate all tasks and folders on the target', rich_help_panel="Task Options"),
-    json:               bool    = typer.Option(False, '--json', help='Return the task configs as JSON instead of XML', rich_help_panel="Output Options"),
+    task:               str     = typer.Option(..., '-t', '--task', help='Full path of the task [Example: \Microsoft\Windows\MyTask]', rich_help_panel="Task Options"),
+    #session:            int     = typer.Option(0, '--session', help='Session number to run the task in (useful for running the task as a logged-in user)', rich_help_panel="Task Options"),
     hashes:             str     = typer.Option(None, '--hashes', metavar="LMHASH:NTHASH", help='NTLM hashes, format is LMHASH:NTHASH', rich_help_panel="Authentication Options"),
     no_pass:            bool    = typer.Option(False, '--no-pass', help='Don\'t ask for password (useful for -k)', rich_help_panel="Authentication Options"),
     kerberos:           bool    = typer.Option(False, '-k', '--kerberos', help='Use Kerberos authentication. Grabs credentials from ccache file (KRB5CCNAME) based on target parameters. If valid credentials cannot be found, it will use the ones specified in the command line', rich_help_panel="Authentication Options"),
@@ -54,13 +52,6 @@ def main(
         kerberos = True    
 
     task_handler = TaskHandler(task, username, password, domain, host, lm_hash, nt_hash, aesKey, kerberos, domain_controller)
-    
-    if all:
-        task_handler.enum_all_tasks()
-    elif folder:
-        task_handler.enum_folder()
-    else:
-        task_handler.enum_task(not json)
-
-
+    #task_handler.run_task(session)
+    task_handler.run_task()
     task_handler.disconnect()

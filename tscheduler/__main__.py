@@ -1,5 +1,5 @@
 import typer
-from schshell.lib.commands import all
+from tscheduler.lib.commands import all
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -18,4 +18,4 @@ for command in all:
 
 
 if __name__ == "__main__":
-    app(prog_name="schshell")
+    app(prog_name="tscheduler")

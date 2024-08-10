@@ -1,7 +1,7 @@
 import typer
 import logging
-from schshell.lib.taskhandler import TaskHandler
-from schshell import banner
+from tscheduler.lib.taskhandler import TaskHandler
+from tscheduler import banner
 from impacket.examples.utils import parse_target
 
 

@@ -1,8 +1,8 @@
 import typer
 import logging
-from schshell.lib.taskhandler import TaskHandler
-from schshell import banner
-from schshell.lib.models import Hijack
+from tscheduler.lib.taskhandler import TaskHandler
+from tscheduler import banner
+from tscheduler.lib.models import Hijack
 from impacket.examples.utils import parse_target
 from pathlib import Path
 

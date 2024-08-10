@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "schshell"
+name = "tscheduler"
 version = "0.1.0"
 description = ""
 authors = ["Tw1sm <mcreel31@gmail.com>"]
@@ -20,4 +20,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-schshell = "schshell.__main__:app"
+tscheduler = "tscheduler.__main__:app"

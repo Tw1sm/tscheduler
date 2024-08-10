@@ -1,4 +1,4 @@
-from schshell.lib.commands import create, delete, disable, enable, enum, hijack, start, stop
+from tscheduler.lib.commands import create, delete, disable, enable, enum, hijack, start, stop
 
 #
 # originally started this code base with the focus on the hijack module,

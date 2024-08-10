@@ -2,9 +2,9 @@ from operator import imod
 from xmlrpc.client import SYSTEM_ERROR
 import typer
 import logging
-from schshell.lib.taskhandler import TaskHandler
-from schshell.lib.models import Principal
-from schshell import banner
+from tscheduler.lib.taskhandler import TaskHandler
+from tscheduler.lib.models import Principal
+from tscheduler import banner
 from impacket.examples.utils import parse_target
 
 
@@ -21,6 +21,8 @@ def main(
     args:               str             = typer.Option(None, '-a', '--args', help='Arguments the task will pass to the command', rich_help_panel="Task Options"),
     principal:          Principal       = typer.Option('SYSTEM', '-p', '--principal', case_sensitive=False, help='Principal the task runs as (User for logged-in user) (useful for --session when starting task)', rich_help_panel="Task Options"),
     xml:                typer.FileText  = typer.Option(None, '--xml', help='Path to custom task XML file (overrides options like principal and command)', rich_help_panel="Task Options"),
+    delete:             bool            = typer.Option(False, '--delete', help='Delete the task, then register it with the new definition', rich_help_panel="Task Options"),
+    start:              bool            = typer.Option(False, '--start', help='Start the task after registering it', rich_help_panel="Task Options"),
     hashes:             str             = typer.Option(None, '--hashes', metavar="LMHASH:NTHASH", help='NTLM hashes, format is LMHASH:NTHASH', rich_help_panel="Authentication Options"),
     no_pass:            bool            = typer.Option(False, '--no-pass', help='Don\'t ask for password (useful for -k)', rich_help_panel="Authentication Options"),
     kerberos:           bool            = typer.Option(False, '-k', '--kerberos', help='Use Kerberos authentication. Grabs credentials from ccache file (KRB5CCNAME) based on target parameters. If valid credentials cannot be found, it will use the ones specified in the command line', rich_help_panel="Authentication Options"),

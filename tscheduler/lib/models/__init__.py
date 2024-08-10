@@ -1,5 +1,5 @@
-from schshell.lib.models.principal import Principal
-from schshell.lib.models.hijack import Hijack, DLLHijack
+from tscheduler.lib.models.principal import Principal
+from tscheduler.lib.models.hijack import Hijack, DLLHijack
 
 
 DLL_HIJACKS = {

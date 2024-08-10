@@ -3,10 +3,10 @@ from impacket.dcerpc.v5.dtypes import NULL
 from impacket.dcerpc.v5.rpcrt import RPC_C_AUTHN_GSS_NEGOTIATE, RPC_C_AUTHN_LEVEL_PKT_PRIVACY
 from impacket.smbconnection import SessionError, SMBConnection
 from impacket import uuid
-from schshell import OBJ_EXTRA_FMT, ColorScheme, console
-from schshell.lib.xmlhandler import XMLHandler
-from schshell.lib.models import Principal, DLLHijack, DLL_HIJACKS
-from schshell.lib.pyclone import _clone_exports
+from tscheduler import OBJ_EXTRA_FMT, ColorScheme, console
+from tscheduler.lib.xmlhandler import XMLHandler
+from tscheduler.lib.models import Principal, DLLHijack, DLL_HIJACKS
+from tscheduler.lib.pyclone import _clone_exports
 from hashlib import sha256
 from rich import print_json
 from io import BufferedReader

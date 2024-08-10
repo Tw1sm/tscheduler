@@ -1,13 +1,13 @@
 import typer
 import logging
-from schshell.lib.taskhandler import TaskHandler
-from schshell import banner
+from tscheduler.lib.taskhandler import TaskHandler
+from tscheduler import banner
 from impacket.examples.utils import parse_target
 
 
 app = typer.Typer()
-COMMAND_NAME = 'disable'
-HELP = 'Disable an enabled scheduled task'
+COMMAND_NAME = 'enable'
+HELP = 'Enable a disabled scheduled task'
 
 @app.callback(no_args_is_help=True, invoke_without_command=True)
 def main(
@@ -51,5 +51,5 @@ def main(
         kerberos = True    
 
     task_handler = TaskHandler(task, username, password, domain, host, lm_hash, nt_hash, aesKey, kerberos, domain_controller)
-    task_handler.enable_task(enable=False)
+    task_handler.enable_task(enable=True)
     task_handler.disconnect()
