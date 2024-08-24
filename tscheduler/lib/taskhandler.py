@@ -5,7 +5,7 @@ from impacket.smbconnection import SessionError, SMBConnection
 from impacket import uuid
 from tscheduler import OBJ_EXTRA_FMT, ColorScheme, console
 from tscheduler.lib.xmlhandler import XMLHandler
-from tscheduler.lib.models import Principal, DLLHijack, DLL_HIJACKS
+from tscheduler.lib.models import DLLHijack, DLL_HIJACKS
 from tscheduler.lib.pyclone import _clone_exports
 from hashlib import sha256
 from rich import print_json
@@ -22,7 +22,7 @@ class TaskHandler:
     '''
     Use Impacket's MS-TSCH implementation to remotely manage scheduled tasks
     '''
-    def __init__(self, path=None, username='', password='', domain='', target='', lmhash=None, nthash=None, aesKey=None, doKerberos=False, kdcHost=None):
+    def __init__(self, path=None, username='', password='', domain='', target='', lmhash=None, nthash=None, aesKey=None, doKerberos=False, kdcHost=None, outfile=None):
         self.__path = path
         self.__username = username
         self.__password = password
@@ -34,7 +34,7 @@ class TaskHandler:
         self.__doKerberos = doKerberos
         self.__kdcHost = kdcHost
         self.__dce = None
-        self.__output_file = 'tasks.json'
+        self.__output_file = 'tasks.xml'
         self.__taskconfig_file = 'configs.xml'
         self.__reference_dll = None
 
@@ -89,6 +89,7 @@ class TaskHandler:
         '''
         Disconnect the RPC transport
         '''
+        logging.debug('Disconnecting RPC transport')
         self.__dce.disconnect()
 
     
@@ -150,10 +151,16 @@ class TaskHandler:
         self._get_task_instances()
         resp = tsch.hSchRpcRetrieveTask(self.__dce, self.__path)
 
-        print()
         if xml:
             if output:
-                print(resp['pXml'])
+                logging.info('Dumping task config')
+                print()
+                console.print(resp['pXml'])
+                fname = self.__path.split('\\')[-1] + '.xml'
+                with open(fname, 'w') as f:
+                    f.write(resp['pXml'][:-1])
+                print()
+                logging.info(f'Task XML config dumped to ./{fname}')
         else:
             xparsed = xmltodict.parse(resp['pXml'][:-1])
             print_json(json.dumps(xparsed))
@@ -293,30 +300,22 @@ class TaskHandler:
         self._get_task_state()
 
 
-    def create_task(self, principal=None, command=None, args=None, xml=None, path=None):
+    def create_task(self, xml=None, path=None, update=False):
         '''
-        Register a new task
+        Register a new task or update an existing one
         '''
         if path is None:
             path = self.__path
-        
-        # using stock XML template
-        if xml is None:
-            xml_handler = XMLHandler(None)
-            if command is not None:
-                xml_handler.set_command(command)
 
-            if args is not None:
-                xml_handler.set_arguments(args)
-
-            if principal == Principal.USER:
-                xml_handler.set_principal_user()
-            
-            xml = xml_handler.get_xml_as_string()
+        #
+        # To modify an existing task, the TASK_UPDATE flag must be set
+        #  https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-tsch/3b0f409e-b42e-4528-b746-417da9e335dc
+        #
+        flags = tsch.TASK_CREATE if not update else tsch.TASK_UPDATE
 
         # attempt to register the task
         try:
-            resp = tsch.hSchRpcRegisterTask(self.__dce, path, xml, tsch.TASK_CREATE, NULL, tsch.TASK_LOGON_NONE)
+            resp = tsch.hSchRpcRegisterTask(self.__dce, path, xml, flags, NULL, tsch.TASK_LOGON_NONE)
             logging.info(f'Task created: {ColorScheme.task}{self.__path}[/]', extra=OBJ_EXTRA_FMT)
         except (tsch.DCERPCSessionError, tsch.DCERPCException) as e:
             logging.error(str(e))

@@ -1,4 +1,3 @@
-from tscheduler.lib.models.principal import Principal
 from tscheduler.lib.models.hijack import Hijack, DLLHijack
 
 

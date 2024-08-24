@@ -3,25 +3,21 @@ from xmlrpc.client import SYSTEM_ERROR
 import typer
 import logging
 from tscheduler.lib.taskhandler import TaskHandler
-from tscheduler.lib.models import Principal
 from tscheduler import banner
 from impacket.examples.utils import parse_target
 
 
 app = typer.Typer()
-COMMAND_NAME = 'create'
-HELP = 'Create and register a new scheduled task'
+COMMAND_NAME = 'register'
+HELP = 'Register a new scheduled task or update an existing one'
 
 
 @app.callback(no_args_is_help=True, invoke_without_command=True)
 def main(
     target:             str             = typer.Argument(..., help='[domain/]username[:password]@]<targetName or address>'),
     task:               str             = typer.Option(..., '-t', '--task', help='Full path of the task [Example: \Microsoft\Windows\MyTask]', rich_help_panel="Task Options"),
-    command:            str             = typer.Option(None, '-c', '--command', help='Command the new task will execute', rich_help_panel="Task Options"),
-    args:               str             = typer.Option(None, '-a', '--args', help='Arguments the task will pass to the command', rich_help_panel="Task Options"),
-    principal:          Principal       = typer.Option('SYSTEM', '-p', '--principal', case_sensitive=False, help='Principal the task runs as (User for logged-in user) (useful for --session when starting task)', rich_help_panel="Task Options"),
-    xml:                typer.FileText  = typer.Option(None, '--xml', help='Path to custom task XML file (overrides options like principal and command)', rich_help_panel="Task Options"),
-    delete:             bool            = typer.Option(False, '--delete', help='Delete the task, then register it with the new definition', rich_help_panel="Task Options"),
+    xml:                typer.FileText  = typer.Option(..., '--xml', help='Path to custom task XML file', rich_help_panel="Task Options"),
+    update:             bool            = typer.Option(False, '--update', help='Update an existing task with the new definition', rich_help_panel="Task Options"),
     start:              bool            = typer.Option(False, '--start', help='Start the task after registering it', rich_help_panel="Task Options"),
     hashes:             str             = typer.Option(None, '--hashes', metavar="LMHASH:NTHASH", help='NTLM hashes, format is LMHASH:NTHASH', rich_help_panel="Authentication Options"),
     no_pass:            bool            = typer.Option(False, '--no-pass', help='Don\'t ask for password (useful for -k)', rich_help_panel="Authentication Options"),
@@ -38,18 +34,6 @@ def main(
 
     if not quiet:
         banner()
-
-    # Arg guardrails
-    if command is None and xml is None:
-        logging.warning('Either a command or custom task XML must be supplied')
-        exit()
-
-    if command is not None and xml is not None:
-        logging.warning('A command cannot be specified when custom task XML is used')
-        exit()
-
-    if xml is not None and (command is not None or principal != 'SYSTEM'):
-        logging.warning('Custom task XML overrides command and principal options')
 
     domain, username, password, host = parse_target(target)
 
@@ -76,5 +60,16 @@ def main(
         xml = xml.read()    
 
     task_handler = TaskHandler(task, username, password, domain, host, lm_hash, nt_hash, aesKey, kerberos, domain_controller)
-    task_handler.create_task(principal, command, args, xml)
+
+    #
+    # Register the task
+    #
+    task_handler.create_task(xml, update=update)
+    
+    #
+    # Optionally kick the task
+    #
+    if start:
+        task_handler.run_task()
+    
     task_handler.disconnect()

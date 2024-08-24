@@ -1,4 +1,4 @@
-from tscheduler.lib.commands import create, delete, disable, enable, enum, hijack, start, stop
+from tscheduler.lib.commands import delete, disable, enable, enum, hijack, register, start, stop
 
 #
 # originally started this code base with the focus on the hijack module,
@@ -7,7 +7,7 @@ from tscheduler.lib.commands import create, delete, disable, enable, enum, hijac
 #   Commented that module out, but left the code in case someone finds it useful
 #
 all = [
-    create,
+    register,
     delete,
     disable,
     enable,

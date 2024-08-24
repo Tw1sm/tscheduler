@@ -4,3 +4,4 @@ venv/
 dist/*
 tasks.json
 configs.xml
+*.xml
