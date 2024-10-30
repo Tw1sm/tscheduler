@@ -16,7 +16,6 @@ def main(
     folder:             bool    = typer.Option(False, '--folder', help='The specified task path is a folder and not a task', rich_help_panel="Task Options"),
     all:                bool    = typer.Option(False, '--all', help='Enumerate all tasks and folders on the target', rich_help_panel="Task Options"),
     json:               bool    = typer.Option(False, '--json', help='Return the task configs as JSON instead of XML', rich_help_panel="Output Options"),
-    outfile:            str     = typer.Option(None, '--file', help='Save the task config to a file', rich_help_panel="Output Options"),
     hashes:             str     = typer.Option(None, '--hashes', metavar="LMHASH:NTHASH", help='NTLM hashes, format is LMHASH:NTHASH', rich_help_panel="Authentication Options"),
     no_pass:            bool    = typer.Option(False, '--no-pass', help='Don\'t ask for password (useful for -k)', rich_help_panel="Authentication Options"),
     kerberos:           bool    = typer.Option(False, '-k', '--kerberos', help='Use Kerberos authentication. Grabs credentials from ccache file (KRB5CCNAME) based on target parameters. If valid credentials cannot be found, it will use the ones specified in the command line', rich_help_panel="Authentication Options"),
