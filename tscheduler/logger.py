@@ -7,7 +7,7 @@ console = Console(color_system='256')
 
 class ColorScheme:
     folder = "[yellow]"
-    task = "[dodger_blue1]"
+    task = "[blue]"
 
 OBJ_EXTRA_FMT = {
     "markup": True,

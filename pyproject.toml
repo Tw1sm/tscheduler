@@ -1,15 +1,16 @@
 [tool.poetry]
-name = "schshell"
+name = "tscheduler"
 version = "0.1.0"
 description = ""
 authors = ["Tw1sm <mcreel31@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-typer = "^0.4.1"
-impacket = "^0.10.0"
-rich = "^12.4.4"
+impacket = "^0.11.0"
+rich = "^13.7.1"
 xmltodict = "^0.13.0"
+typer = "^0.12.3"
+pefile = "2019.4.18"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -19,4 +20,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-schshell = "schshell.__main__:app"
+tscheduler = "tscheduler.__main__:app"

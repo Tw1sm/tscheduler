@@ -2,3 +2,6 @@ logs/*
 venv/
 *.pyc
 dist/*
+tasks.json
+configs.xml
+*.xml
